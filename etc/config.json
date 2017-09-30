@@ -1,0 +1,12 @@
+{
+    "header"  : "Python3 mail",
+    "content" : "This mail is sent with Python3",
+    "type"    : "plain",
+
+    "login"     : "",
+    "password"  : "",
+    "smtp_addr" : "",
+
+    "receiver": "",
+    "sender"  : ""
+}
