@@ -30,11 +30,11 @@ Define all fields in the config file in `etc/config.json`:
     "sender"  : ""
 }
 ```
-Then, just use `Email_from_conf` instead of `Email`:
+Then, just use the class method `send_from_source_file()` instead of `Email`:
 ```python
-Email_from_conf()
+Email.send_from_source_file()
 ```
 If your configuration file is somewhere else, specify the path as:
 ```python
-Email_from_conf('my/custom/path/myfile.json')
+Email.send_from_source_file()('my/custom/path/myfile.json')
 ```
