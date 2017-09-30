@@ -106,7 +106,3 @@ class Email(object):
                 self._receiver,
                 self._msg.as_string()
             )
-
-
-if __name__ == '__main__':
-    Email.send_from_source_file()
