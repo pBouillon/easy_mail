@@ -51,10 +51,10 @@ class Email(object):
 
     def prepare(self, header, content, msg_type='plain'):
         if header == '':
-            print('%s\n', 'Header cannot be empty')
+            exit('Error: Header cannot be empty')
             return
         if content == '':
-            print('%s\n', 'Content cannot be empty')
+            exit('Error: Content cannot be empty')
             return
         else: 
             self._msg = MIMEText(content, msg_type)
@@ -76,14 +76,11 @@ class Email(object):
 
 class Email_from_conf(object):
     def __init__(self, path='etc/conf.json'):
-        print('Begin')
         self._settings = self.get_settings (path)
-        print('Reading successful')
         self.proceed()
 
     def proceed(self):
         try:
-            print('Mail prep')
             mail = Email(
                     self._settings['sender'],
                     self._settings['receiver'],
@@ -93,18 +90,15 @@ class Email_from_conf(object):
                     self._settings['content'],
                     self._settings['type']
                 )
-            print('Mail sending')
             mail.send(
                     self._settings['smtp_addr'],
                     self._settings['login'],
                     self._settings['password']
                 )
-            print('Sending successful')
         except KeyError:
             exit("Incorrect config file")
 
     def get_settings(self, path):
-        print('File reading')
         try:
             with open(path, 'r') as conf:
                 return load(conf)
@@ -112,32 +106,3 @@ class Email_from_conf(object):
             err_msg = 'Error - Incorrect path to config file: ' 
             err_msg+= path
             exit(err_msg)
-
-
-def usage_sample() :
-    header = 'Python mail'
-    message = '''
-    Hi, 
-    
-    This mail was sent using a Python script.
-
-    Cheers !
-    '''
-
-    mail = Email(
-            'sender@mail.com',
-            'receiver@mail.com'
-        )
-    mail.prepare(
-            header,
-            message
-        )
-
-    mail.send(
-            'smtp.server.addr',
-            'login@mail.com',
-            'password'
-        )
-
-if __name__ == '__main__':
-    usage_sample()
