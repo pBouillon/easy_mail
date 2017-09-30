@@ -193,7 +193,6 @@ class Server(object):
         """
         try:
             self._connection = SMTP_SSL(self._smtp_addr)
-            self._connection.set_debuglevel(True)
             self._connection.login(self._sender_addr, self._psswd)
         except Exception:  
             exit('Error: Unable to establish the connection')
