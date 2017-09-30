@@ -49,6 +49,40 @@ class Email(object):
         self._sender = sender 
         self._server = None
 
+    @classmethod
+    def send_from_source_file(cls, path = 'etc/config.json'):
+        mail = cls('', '')
+        settings = mail._get_settings_from(path)
+        mail._send_from_conf(settings)
+
+    def _get_settings_from(self, path):
+        try:
+            with open(path, 'r') as conf:
+                return load(conf)
+        except FileNotFoundError:
+            err_msg = 'Error - Incorrect path to config file: ' 
+            err_msg+= path
+            exit(err_msg)
+
+    def _send_from_conf(self, config):
+        try:
+            mail = Email(
+                    config['sender'],
+                    config['receiver'],
+                )
+            mail.prepare(
+                    config['header'],
+                    config['content'],
+                    config['type']
+                )
+            mail.send(
+                    config['smtp_addr'],
+                    config['login'],
+                    config['password']
+                )
+        except KeyError:
+            exit("Incorrect config file")
+
     def prepare(self, header, content, msg_type='plain'):
         if header == '':
             exit('Error: Header cannot be empty')
@@ -74,35 +108,5 @@ class Email(object):
             )
 
 
-class Email_from_conf(object):
-    def __init__(self, path='etc/conf.json'):
-        self._settings = self.get_settings (path)
-        self.proceed()
-
-    def proceed(self):
-        try:
-            mail = Email(
-                    self._settings['sender'],
-                    self._settings['receiver'],
-                )
-            mail.prepare(
-                    self._settings['header'],
-                    self._settings['content'],
-                    self._settings['type']
-                )
-            mail.send(
-                    self._settings['smtp_addr'],
-                    self._settings['login'],
-                    self._settings['password']
-                )
-        except KeyError:
-            exit("Incorrect config file")
-
-    def get_settings(self, path):
-        try:
-            with open(path, 'r') as conf:
-                return load(conf)
-        except FileNotFoundError:
-            err_msg = 'Error - Incorrect path to config file: ' 
-            err_msg+= path
-            exit(err_msg)
+if __name__ == '__main__':
+    Email.send_from_source_file()
