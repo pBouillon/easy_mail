@@ -74,7 +74,7 @@ class Email(object):
             )
 
 
-class Mail_from_conf(object):
+class Email_from_conf(object):
     def __init__(self, path='etc/conf.json'):
         print('Begin')
         self._settings = self.get_settings (path)
