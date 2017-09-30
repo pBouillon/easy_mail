@@ -1,4 +1,4 @@
-# easy_mail
+# :email: :mailbox_closed: Easy mail sending using Python
 Easy mail sending using Python3
 
 ## Installation
