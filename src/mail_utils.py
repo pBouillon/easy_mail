@@ -40,6 +40,12 @@ from json import load
 import json.decoder
 from json.decoder import JSONDecodeError
 
+import mail_exceptions
+from mail_exceptions import BadMailTypeException
+from mail_exceptions import EmptyMailBodyException
+from mail_exceptions import EmptyMailHeaderException
+from mail_exceptions import EmptyPayloadException
+
 import smtplib
 from smtplib import SMTP_SSL
 
@@ -76,7 +82,7 @@ class Server(object):
             self._connection = SMTP_SSL(self._smtp_addr)
             self._connection.set_debuglevel(True)
             self._connection.login(self._sender_addr, self._psswd)
-        except Exception as e:  
+        except Exception:  
             exit('Error: Unable to establish the connection')
 
     def send(self, sender, receiver, payload):
@@ -119,7 +125,7 @@ class Email(object):
         self._server = None
 
     @classmethod
-    def send_from_source_file(cls, path = 'etc/config.json'):
+    def send_from_source_file(cls, path):
         """Sending mail using a file
 
         Arguments:
@@ -128,6 +134,7 @@ class Email(object):
         mail = cls('', '')
         settings = mail._get_settings_from(path)
         mail._send_from_conf(settings)
+
 
     def _get_settings_from(self, path):
         """Scan the config file and return its content
@@ -185,13 +192,18 @@ class Email(object):
             header  : (str) title of the mail
             content : (str) main text of the mail
             msg_type: (str) type of the text (plain | html)
+        
+        Raise:
+            BadMailTypeException   : raised if type != (plain | html)
+            EmptyMailBodyException : raised if the content is empty
+            EmptyMailHeaderException : raised if the header is empty
         """
         if header == '':
-            exit('Error: Header cannot be empty')
-            return
+            raise EmptyMailHeaderException
         if content == '':
-            exit('Error: Content cannot be empty')
-            return
+            raise EmptyMailBodyException
+        if msg_type != 'plain' and msg_type != 'html':
+            raise BadMailTypeException
         else: 
             self._msg = MIMEText(content, msg_type)
             self._msg ['From'] = self._sender
@@ -205,10 +217,12 @@ class Email(object):
             smtp_addr  : (str) server address
             sender_addr: (str) address used to send the mail
             psswd      : (str) password to establish the connection
-
+        
+        Raise:
+            EmptyPayloadException: raised if self._msg isn't set
         """
         if self._msg == None:
-            exit('Error: Can\'t send an empty mail')
+            raise EmptyPayloadException
         self._server = Server(smtp_addr, sender_addr, psswd)
         self._server.connect()
         self._server.send(
