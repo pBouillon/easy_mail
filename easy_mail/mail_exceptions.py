@@ -22,20 +22,28 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# auhtor: Pierre Bouillon [https://github.com/pBouillon]
+# author: Pierre Bouillon [https://github.com/pBouillon]
+
+class BadFileNameException(Exception):
+    def __str__(self):
+        return 'Error: File name must be at least "x.x"'
 
 class BadMailTypeException(Exception):
-	def __str__(self):
-		return 'Type must be plain or html'
+    def __str__(self):
+        return 'Error: Type must be plain or html'
 
 class EmptyMailBodyException(Exception):
-	def __str__(self):
-		return 'Mail body cannot be empty'
+    def __str__(self):
+        return 'Error: Mail body cannot be empty'
 
 class EmptyMailHeaderException(Exception):
     def __str__(self):
-    	return 'Header cannot be empty'
+        return 'Error: Header cannot be empty'
 
 class EmptyPayloadException(Exception):
-	def __str__(self):
-		return 'Error: Can\'t send an empty mail'
+    def __str__(self):
+        return 'Error: Can\'t send an empty mail'
+
+class FileDoesNotExistsException(Exception):
+    def __str__(self):
+        return 'Error: Attachment not found'

@@ -22,7 +22,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# auhtor: Pierre Bouillon [https://github.com/pBouillon]
+# author: Pierre Bouillon [https://github.com/pBouillon]
 
 """mail_utils
 
@@ -32,10 +32,9 @@ the execution of a script.
 """
 
 import email.mime.text
-from email.mime.text import MIMEText
-
-import json
-from json import load
+from email.mime.application import MIMEApplication
+from email.mime.multipart   import MIMEMultipart
+from email.mime.text        import MIMEText
 
 import easy_mail.mail_exceptions
 from easy_mail.mail_exceptions import BadMailTypeException
@@ -43,12 +42,25 @@ from easy_mail.mail_exceptions import EmptyMailBodyException
 from easy_mail.mail_exceptions import EmptyMailHeaderException
 from easy_mail.mail_exceptions import EmptyPayloadException
 
+import json
+from json import load
+
+import mimetypes
+from mimetypes import guess_type
+
+import os
+from os import path
+
 import smtplib
 from smtplib import SMTP_SSL
 
 import sys
 from sys import exit
 
+"""Constant : int
+Must be at least x.x (3 char)
+"""
+MINIMAL_ATT_NAME = 3
 
 class Email(object):
     """Mail builder
@@ -75,7 +87,6 @@ class Email(object):
         mail = cls('', '')
         settings = mail._get_settings_from(path)
         mail._send_from_conf(settings)
-
 
     def _get_settings_from(self, path):
         """Scan the config file and return its content
@@ -141,11 +152,56 @@ class Email(object):
             raise EmptyMailBodyException
         if msg_type != 'plain' and msg_type != 'html':
             raise BadMailTypeException
-        else: 
-            self._msg = MIMEText(content, msg_type)
-            self._msg ['From'] = self._sender
-            self._msg ['To']   = self._receiver
-            self._msg ['Subject'] = header
+
+        self._msg = MIMEMultipart()
+
+        core = MIMEText(content)
+        self._msg.preamble = header
+        self._msg.attach(core)
+
+        self._msg ['From'] = self._sender
+        self._msg ['To']   = self._receiver
+        self._msg ['Subject'] = header
+
+    def add_attachments(self, paths):
+        """Join attachments
+
+        Parse all paths
+        Then check the validity of the file
+        Then check its type
+        Then add it to the mail
+
+        Arguments:
+            paths : (Type[str]) paths to attachments
+        
+        Raise:
+            BadFileNameException : raised if file name is too short
+            FileDoesNotExistsException : raised if file does not exists
+        """
+        attchmt = None
+
+        for file in paths:
+            if len(file) < MINIMAL_ATT_NAME:
+                raise BadFileNameException
+            if not path.exists(file):
+                raise FileDoesNotExistsException
+
+            ctype, encoding = mimetypes.guess_type(file)
+            if ctype is None or encoding is not None:
+                ctype = 'application/octet-stream'
+            main_type, sub_type = ctype.split('/', 1)
+
+            attchmt = None
+            with open(file, 'rb') as f:
+                attchmt = MIMEBase(main_type, sub_type)
+                attchmt.set_payload(f.read())
+            encode_base64(attchmt)
+            self._msg.add_header (
+                    'Content-Disposition', 
+                    'attachment',
+                    filename=path.basename(file)
+                )
+            self._msg.attach(attchmt)
 
     def send(self, smtp_addr, sender_addr, psswd):
         """Send the mail
@@ -160,6 +216,7 @@ class Email(object):
         """
         if self._msg == None:
             raise EmptyPayloadException
+
         self._server = Server(smtp_addr, sender_addr, psswd)
         self._server.connect()
         self._server.send(
@@ -193,6 +250,9 @@ class Server(object):
         """
         try:
             self._connection = SMTP_SSL(self._smtp_addr)
+            self._connection.ehlo()
+            self._connection.startttls()
+            self._connection.ehlo()
             self._connection.login(self._sender_addr, self._psswd)
         except Exception:  
             exit('Error: Unable to establish the connection')

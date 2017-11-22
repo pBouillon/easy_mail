@@ -22,7 +22,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-# auhtor: Pierre Bouillon [https://github.com/pBouillon]
+# author: Pierre Bouillon [https://github.com/pBouillon]
 
 import easy_mail.mail_utils
 from easy_mail.mail_utils import Email
